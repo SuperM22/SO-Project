@@ -42,38 +42,23 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
   alloc->num_levels=num_levels;
   alloc->memory=memory;
   alloc->min_bucket_size=min_bucket_size;
+  alloc->bitmap= (BitMap) buffer;
+
   assert (num_levels<MAX_LEVELS);
   // we need enough memory to handle internal structures
   assert (buffer_size>=BuddyAllocator_calcSize(num_levels));
 
-  int list_items=1<<(num_levels+1); // maximum number of allocations, used to size the list
-  int list_alloc_size=(sizeof(BuddyListItem)+sizeof(int))*list_items;
+  //manca da inizializzare la bitmap
 
-  printf("BUDDY INITIALIZING\n");
-  printf("\tlevels: %d", num_levels);
-  printf("\tmax list entries %d bytes\n", list_alloc_size);
-  printf("\tbucket size:%d\n", min_bucket_size);
-  printf("\tmanaged memory %d bytes\n", (1<<num_levels)*min_bucket_size);
 
-  // the buffer for the list starts where the bitmap ends
-  char *list_start=buffer;
-  PoolAllocatorResult init_result=PoolAllocator_init(&alloc->list_allocator,
-						     sizeof(BuddyListItem),
-						     list_items,
-						     list_start,
-						     list_alloc_size);
-  printf("%s\n",PoolAllocator_strerror(init_result));
 
-  // we initialize all lists
-  for (int i=0; i<MAX_LEVELS; ++i) {
-    List_init(alloc->free+i);
   }
 
-  // we allocate a list_item to mark that there is one "materialized" list
-  // in the first block
-  BuddyAllocator_createListItem(alloc, 1, 0);
-};
-//da fare
-//pensare bene a come utilizzare la bitmap al meglio
-//malloc e free
-//funzione stampa(?)
+
+//per la malloc ho bisogno di creare una funzione ausiliaria che
+//mi restituisca dei buddy consoni alle richieste
+//effettuate , per poi poterli utilizzare nella malloc vera e propria
+
+
+//vale altrettanto per la free : posso creare una funzione che
+//mi 'riunisca' la memoria precedentemente partizionata

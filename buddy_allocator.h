@@ -14,9 +14,9 @@ typedef struct  {
 // initializes the buddy allocator, and checks that the buffer is large enough
 void BuddyAllocator_init(BuddyAllocator* alloc,
                          int num_levels,
-                         char* buffer,
+                         char* buffer, //buffer allocatore
                          int buffer_size,
-                         char* memory,
+                         char* memory, //buffer per la bitmap
                          int min_bucket_size);
 
 //allocates memory
