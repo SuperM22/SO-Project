@@ -57,14 +57,35 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
   printf("Numero bit della bitmap: %d\n", alloc->tree->num_bits);
 
   //impongo che nella bitmap sia disponibile solo il primo livello
-  BitMap_setBit(alloc->tree,0,1);
+  BitMap_setBit(alloc->bitmap,0,1);
   for(int i = 1; i < n_bits; i++)
-	  BitMap_setBit(alloc->tree,i,0);
+	  BitMap_setBit(alloc->bitmap,i,0);
 
 
   }
   // da fare fzaux e malloc
+  int BuddyAllocator_aux(BuddyAllocator* alloc, int lvl){
+    if (level<1)
+  		return 0;
+    assert(level <= alloc->num_levels);
 
+    //in un albero binario il primo indice di un livello
+    //e il suo numero massimo di nodi a quel livello
+    //si ricavano nello stesso modo
+    int first_idx = 1 << (lvl - 1);
+    int n_bud= first_idx;
+
+    for (int i = 0; i < n_bud; i++) {
+      if(BitMap_bit(alloc->bitmap, first_idx + i - 1)){ //-1 perche la bitmap parte da 0
+        //se il buddy e libero ritorno il suo indice
+        //e setto il bit nella bitmap come unavailable
+        BitMap_setBit(alloc->bitmap, first_idx + i -1 ,0);
+        return first_idx+i;
+      }
+    }
+
+    // da fare caso in cui non ci siano buddy available al livello lvl1
+  }
 
 //per la malloc ho bisogno di creare una funzione ausiliaria che
 //mi restituisca dei buddy consoni alle richieste
