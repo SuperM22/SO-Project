@@ -48,11 +48,22 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
   // we need enough memory to handle internal structures
   assert (buffer_size>=BuddyAllocator_calcSize(num_levels));
 
-  //manca da inizializzare la bitmap
 
+  int n_bits = (1 << num_levels)-1; //left shift di 1 == 2^num_levels
+
+
+  //inizializzo la BitMap
+  BitMap_init(alloc->bitmap,n_bits,buffer);
+  printf("Numero bit della bitmap: %d\n", alloc->tree->num_bits);
+
+  //impongo che nella bitmap sia disponibile solo il primo livello
+  BitMap_setBit(alloc->tree,0,1);
+  for(int i = 1; i < n_bits; i++)
+	  BitMap_setBit(alloc->tree,i,0);
 
 
   }
+  // da fare fzaux e malloc
 
 
 //per la malloc ho bisogno di creare una funzione ausiliaria che
