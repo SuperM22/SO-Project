@@ -84,12 +84,43 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
       }
     }
 
-    // da fare caso in cui non ci siano buddy available al livello lvl1
+    //  caso in cui non ci siano buddy available al livello lvl
+    //cerco nel livello del genitore
+    int final_idx = BuddyAllocator_getBuddy(alloc, levelIdx(parentIdx(first_idx))) *2;
+
+    if(!final_idx) return 0; //se non vi e memoria disponibile ritorno 0
+
+
+    int mem_idx = buddyIdx(final_idx);
+
+
+    BitMap_setBit(alloc->bitmap, mem_idx-1, 1);
+
+
+    return final_idx;
+
   }
 
-//per la malloc ho bisogno di creare una funzione ausiliaria che
-//mi restituisca dei buddy consoni alle richieste
-//effettuate , per poi poterli utilizzare nella malloc vera e propria
+
+  void* BuddyAllocator_malloc(BuddyAllocator* alloc, int size){
+    int mem_size=(1<<alloc->num_levels)*alloc->min_bucket_size;
+    int  level=floor(log2(mem_size/(size+4)));
+
+    if (level>alloc->num_levels)
+    level=alloc->num_levels;
+
+    printf("Requested: %d bytes, level %d \n",
+         size, level);
+
+    int idx_free = BuddyAllocator_getBuddy(alloc,level);
+    //cerco un buddy libero
+
+    if(!idx_free) return 0;
+
+    //manca la parte della memoria
+
+  }
+
 
 
 //vale altrettanto per la free : posso creare una funzione che

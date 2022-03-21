@@ -22,5 +22,9 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
 //allocates memory
 void* BuddyAllocator_malloc(BuddyAllocator* alloc, int size);
 
+
+//ritorna l indice nella bitmap del buddy libero
+//0 se non vi e memoria disponibile
+int BuddyAllocator_getBuddy(BuddyAllocator* alloc, int lvl);
 //releases allocated memory
 void BuddyAllocator_free(BuddyAllocator* alloc, void* mem);
