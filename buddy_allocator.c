@@ -26,9 +26,8 @@ int startIdx(int idx){
 
 // computes the size in bytes for the allocator
 int BuddyAllocator_calcSize(int num_levels) {
-  int list_items=1<<(num_levels+1); // maximum number of allocations, used to determine the max list items
-  int list_alloc_size=(sizeof(BuddyListItem)+sizeof(int))*list_items;
-  return list_alloc_size;
+int n_bits= 1<<(num_levels) - 1; //bit utilizzati
+return BitMap_getBytes(n_bits) + sizeof(BitMap);
 }
 
 void BuddyAllocator_init(BuddyAllocator* alloc,
@@ -40,34 +39,34 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
 
   // we need room also for level 0
   alloc->num_levels=num_levels;
-  alloc->memory=memory;
+  alloc->buffer=buffer;
   alloc->min_bucket_size=min_bucket_size;
-  alloc->bitmap= (BitMap) buffer;
+  //alloc->bitmap= (BitMap*) memory;
 
   assert (num_levels<MAX_LEVELS);
   // we need enough memory to handle internal structures
   assert (buffer_size>=BuddyAllocator_calcSize(num_levels));
 
 
-  int n_bits = (1 << num_levels)-1; //left shift di 1 == 2^num_levels
+  int n_bits = (1 << (num_levels + 1)) -1;
 
 
   //inizializzo la BitMap
-  BitMap_init(alloc->bitmap,n_bits,buffer);
-  printf("Numero bit della bitmap: %d\n", alloc->tree->num_bits);
+  BitMap_init(&alloc->bitmap,n_bits,memory);
+  printf("Numero bit della bitmap: %d\n", alloc->bitmap.num_bits);
 
   //impongo che nella bitmap sia disponibile solo il primo livello
-  BitMap_setBit(alloc->bitmap,0,1);
+  /*BitMap_setBit(&alloc->bitmap,0,1);
   for(int i = 1; i < n_bits; i++)
-	  BitMap_setBit(alloc->bitmap,i,0);
+	  BitMap_setBit(&alloc->bitmap,i,0);*/
 
 
   }
-  // da fare fzaux e malloc
-  int BuddyAllocator_aux(BuddyAllocator* alloc, int lvl){
-    if (level<1)
+
+  int BuddyAllocator_getBuddy(BuddyAllocator* alloc, int lvl){
+    if (lvl<1)
   		return 0;
-    assert(level <= alloc->num_levels);
+    assert(lvl <= alloc->num_levels);
 
     //in un albero binario il primo indice di un livello
     //e il suo numero massimo di nodi a quel livello
@@ -76,10 +75,10 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     int n_bud= first_idx;
 
     for (int i = 0; i < n_bud; i++) {
-      if(BitMap_bit(alloc->bitmap, first_idx + i - 1)){ //-1 perche la bitmap parte da 0
+      if(BitMap_bit(&alloc->bitmap, first_idx + i - 1)){ //-1 perche la bitmap parte da 0
         //se il buddy e libero ritorno il suo indice
         //e setto il bit nella bitmap come unavailable
-        BitMap_setBit(alloc->bitmap, first_idx + i -1 ,0);
+        BitMap_setBit(&alloc->bitmap, first_idx + i -1 ,0);
         return first_idx+i;
       }
     }
@@ -94,7 +93,7 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     int mem_idx = buddyIdx(final_idx);
 
 
-    BitMap_setBit(alloc->bitmap, mem_idx-1, 1);
+    BitMap_setBit(&alloc->bitmap, mem_idx-1, 1);
 
 
     return final_idx;
@@ -104,8 +103,9 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
 
   void* BuddyAllocator_malloc(BuddyAllocator* alloc, int size){
     int mem_size=(1<<alloc->num_levels)*alloc->min_bucket_size;
-    int  level=floor(log2(mem_size/(size+4)));
+    int  level=floor(log2(mem_size/(size+4)));//determino il livello della pagina
 
+    //se il livello e troppo piccolo lo paddiamo al massimo
     if (level>alloc->num_levels)
     level=alloc->num_levels;
 
@@ -118,6 +118,16 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     if(!idx_free) return 0;
 
     //manca la parte della memoria
+    int offset = idx_free - (1<<(level-1)); //offset del nodo idxfree al livello level
+    int tot_memory= alloc->min_bucket_size * (1<<(alloc->num_levels-1)); //memoria massima
+
+    char* buf = alloc->buffer + tot_memory / (1 << level-1) * offset;
+
+    *((int*)buf) = idx_free; //scrivo l indice nella prima parte della memoria allocata
+
+    printf("Indice:%d. Indirizzo:%p \n",idx_free,buf);
+
+    return buf + 4; //sizeof int
 
   }
 
