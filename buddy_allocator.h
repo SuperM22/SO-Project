@@ -4,7 +4,7 @@
 #define MAX_LEVELS 16
 
 typedef struct  {
-  BitMap bitmap;
+  BitMap* bitmap;
   int num_levels;
   char* buffer; // the buffer area to be managed
   int buffer_size;

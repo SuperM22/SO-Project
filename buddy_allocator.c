@@ -73,24 +73,24 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
   alloc->num_levels=num_levels;
   alloc->buffer=buffer;
   alloc->min_bucket_size=min_bucket_size;
-  //alloc->bitmap= (BitMap*) memory;
+  alloc->bitmap= (BitMap*) buffer;
 
   assert (num_levels<MAX_LEVELS);
   // we need enough memory to handle internal structures
   assert (buffer_size>=BuddyAllocator_calcSize(num_levels));
 
 
-  int n_bits = (1 << (num_levels + 1)) -1;
+  int n_bits = (1 << num_levels ) - 1;
 
 
   //inizializzo la BitMap
-  BitMap_init(&alloc->bitmap,n_bits,memory);
-  printf("Numero bit della bitmap: %d\n", alloc->bitmap.num_bits);
+  BitMap_init(alloc->bitmap,n_bits,memory+sizeof(BitMap));
+  printf("Numero bit della bitmap: %d\n", alloc->bitmap->num_bits);
 
   //impongo che nella bitmap sia disponibile solo il primo livello
-  BitMap_setBit(&alloc->bitmap,0,1);
+  BitMap_setBit(alloc->bitmap,0,1);
   for(int i = 1; i < n_bits; i++)
-	  BitMap_setBit(&alloc->bitmap,i,0);
+	  BitMap_setBit(alloc->bitmap,i,0);
 
 
   }
@@ -107,10 +107,10 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     int n_bud= 1 << (lvl - 1);
 
     for (int i = 0; i < n_bud; i++) {
-      if(BitMap_bit(&alloc->bitmap, first_idx + i - 1)){ //-1 perche la bitmap parte da 0
+      if(BitMap_bit(alloc->bitmap, first_idx + i - 1)){ //-1 perche la bitmap parte da 0
         //se il buddy e libero ritorno il suo indice
         //e setto il bit nella bitmap come unavailable
-        BitMap_setBit(&alloc->bitmap, first_idx + i -1 ,0);
+        BitMap_setBit(alloc->bitmap, first_idx + i -1 ,0);
         return first_idx+i;
       }
     }
@@ -127,7 +127,7 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     int mem_idx = buddyIdx(final_idx);
 
 
-    BitMap_setBit(&alloc->bitmap, mem_idx - 1, 1);
+    BitMap_setBit(alloc->bitmap, mem_idx - 1, 1);
 
 
     return final_idx;
@@ -161,6 +161,7 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
 
     *((int*)buf) = idx_free; //scrivo l indice nella prima parte della memoria allocata
 
+    printf("Indice: %d. Indirizzo: %p\n", idx_free, buf);
 
 
     return buf + sizeof(int);
