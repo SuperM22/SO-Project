@@ -3,11 +3,43 @@
 #include <math.h> // for floor and log2
 #include "buddy_allocator.h"
 
+
+
+//semplice funzione di stampa
+void BitMap_print(BitMap* bit_map){
+
+  for (int i=0; i<bit_map->num_bits; i++){
+    if (i==firstIdx(levelIdx(i))){
+      printf ("level %d: ", levelIdx(i));
+      for (int k=bit_map->num_bits>>(levelIdx(i)+1);k>0; k--){
+        printf(" ");
+      }
+    }
+    if (levelIdx(i)!=levelIdx(i+1)){
+      printf("%d ", BitMap_bit(bit_map,i));
+      printf("\n");
+    }
+    else{
+     printf("%d ", BitMap_bit(bit_map,i));
+     for (int k=bit_map->num_bits>>(levelIdx(i)+1);k>0; k--){
+        printf("  ");
+      }
+    }
+  }
+  printf("\n");
+
+  }
+
 // these are trivial helpers to support you in case you want
 // to do a bitmap implementation
 int levelIdx(size_t idx){
   return (int)floor(log2(idx));
 };
+
+int firstIdx(int lvl){
+  return (1 << lvl) - 1;
+
+}
 
 int buddyIdx(int idx){
   if (idx&0x1){
@@ -26,8 +58,8 @@ int startIdx(int idx){
 
 // computes the size in bytes for the allocator
 int BuddyAllocator_calcSize(int num_levels) {
-int n_bits= 1<<(num_levels) - 1; //bit utilizzati
-return BitMap_getBytes(n_bits) + sizeof(BitMap);
+  int n_bits= 1<<(num_levels) - 1; //bit utilizzati
+  return BitMap_getBytes(n_bits) + sizeof(BitMap);
 }
 
 void BuddyAllocator_init(BuddyAllocator* alloc,
@@ -56,9 +88,9 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
   printf("Numero bit della bitmap: %d\n", alloc->bitmap.num_bits);
 
   //impongo che nella bitmap sia disponibile solo il primo livello
-  /*BitMap_setBit(&alloc->bitmap,0,1);
+  BitMap_setBit(&alloc->bitmap,0,1);
   for(int i = 1; i < n_bits; i++)
-	  BitMap_setBit(&alloc->bitmap,i,0);*/
+	  BitMap_setBit(&alloc->bitmap,i,0);
 
 
   }
@@ -72,7 +104,7 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     //e il suo numero massimo di nodi a quel livello
     //si ricavano nello stesso modo
     int first_idx = 1 << (lvl - 1);
-    int n_bud= first_idx;
+    int n_bud= 1 << (lvl - 1);
 
     for (int i = 0; i < n_bud; i++) {
       if(BitMap_bit(&alloc->bitmap, first_idx + i - 1)){ //-1 perche la bitmap parte da 0
@@ -87,13 +119,15 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     //cerco nel livello del genitore
     int final_idx = BuddyAllocator_getBuddy(alloc, levelIdx(parentIdx(first_idx))) *2;
 
-    if(!final_idx) return 0; //se non vi e memoria disponibile ritorno 0
+    if(!final_idx){
 
+       return 0; //se non vi e memoria disponibile ritorno 0
+     }
 
     int mem_idx = buddyIdx(final_idx);
 
 
-    BitMap_setBit(&alloc->bitmap, mem_idx-1, 1);
+    BitMap_setBit(&alloc->bitmap, mem_idx - 1, 1);
 
 
     return final_idx;
@@ -103,11 +137,11 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
 
   void* BuddyAllocator_malloc(BuddyAllocator* alloc, int size){
     int mem_size=(1<<alloc->num_levels)*alloc->min_bucket_size;
-    int  level=floor(log2(mem_size/(size+4)));//determino il livello della pagina
+    int  level=floor(log2(mem_size/(size+sizeof(int))));//determino il livello della pagina
 
     //se il livello e troppo piccolo lo paddiamo al massimo
     if (level>alloc->num_levels)
-    level=alloc->num_levels;
+      level=alloc->num_levels;
 
     printf("Requested: %d bytes, level %d \n",
          size, level);
@@ -115,23 +149,20 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
     int idx_free = BuddyAllocator_getBuddy(alloc,level);
     //cerco un buddy libero
 
-    if(!idx_free) return 0;
+    if(!idx_free){
 
-    //manca la parte della memoria
+      return 0;
+    }
+
     int offset = idx_free - (1<<(level-1)); //offset del nodo idxfree al livello level
     int tot_memory= alloc->min_bucket_size * (1<<(alloc->num_levels-1)); //memoria massima
 
-    char* buf = alloc->buffer + tot_memory / (1 << level-1) * offset;
+    char* buf = alloc->buffer + tot_memory / (1 << (level-1)) * offset;
 
     *((int*)buf) = idx_free; //scrivo l indice nella prima parte della memoria allocata
 
-    printf("Indice:%d. Indirizzo:%p \n",idx_free,buf);
-
-    return buf + 4; //sizeof int
-
-  }
 
 
+    return buf + sizeof(int);
 
-//vale altrettanto per la free : posso creare una funzione che
-//mi 'riunisca' la memoria precedentemente partizionata
+}

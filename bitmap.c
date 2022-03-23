@@ -4,7 +4,7 @@
 
 // returns the number of bytes to store bits booleans
 int BitMap_getBytes(int bits){
-  return bits/8 + (bits%8)!=0; // prendo il numero di bytes (per eccesso) per contenere tutti i bit
+  return bits/8 + ((bits%8)!=0); // prendo il numero di bytes (per eccesso) per contenere tutti i bit
 }
 
 // initializes a bitmap on an external array
@@ -31,7 +31,7 @@ void BitMap_setBit(BitMap* bit_map, int bit_num, int status){
 // inspects the status of the bit bit_num
 int BitMap_bit(const BitMap* bit_map, int bit_num){
   int byte_num=bit_num>>3;
-  assert(byte_num<bit_map->buffer_size);
+  assert(byte_num < bit_map->buffer_size);
   int bit_in_byte=byte_num&0x07;
   return (bit_map->buffer[byte_num] & (1<<bit_in_byte))!=0;
 }
