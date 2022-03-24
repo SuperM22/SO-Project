@@ -47,8 +47,8 @@ int main(int argc, char** argv) {
   void* p2=BuddyAllocator_malloc(&alloc, 100);
   //BitMap_print(&alloc);
   void* p3=BuddyAllocator_malloc(&alloc, 100000);
-  //BuddyAllocator_free(&alloc, p1);
-  //BuddyAllocator_free(&alloc, p2);
-  //BuddyAllocator_free(&alloc, p3);
+  BuddyAllocator_free(&alloc, p1);
+  BuddyAllocator_free(&alloc, p2);
+  BuddyAllocator_free(&alloc, p3);
 
 }

@@ -3,7 +3,7 @@
 
 // simple bit array
 typedef struct  {
-  char *buffer;  // externally allocated buffer
+  uint8_t *buffer;  // externally allocated buffer
   int buffer_size;
   int num_bits;
 } BitMap;

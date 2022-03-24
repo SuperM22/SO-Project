@@ -7,7 +7,7 @@ typedef struct  {
   BitMap* bitmap;
   int num_levels;
   char* buffer; // the buffer area to be managed
-  int buffer_size;
+  //int buffer_size;
   int min_bucket_size; // the minimum page of RAM that can be returned
 } BuddyAllocator;
 
@@ -30,4 +30,5 @@ void* BuddyAllocator_malloc(BuddyAllocator* alloc, int size);
 //0 se non vi e memoria disponibile
 int BuddyAllocator_getBuddy(BuddyAllocator* alloc, int lvl);
 //releases allocated memory
+void BuddyAllocator_releaseBuddy(BuddyAllocator* alloc, int idx);
 void BuddyAllocator_free(BuddyAllocator* alloc, void* mem);
