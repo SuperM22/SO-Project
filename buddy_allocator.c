@@ -10,14 +10,14 @@ void BitMap_print(BitMap* bit_map){
 
   for (int i=0; i<bit_map->num_bits; i++){
     if (i==firstIdx(levelIdx(i))){
-      printf ("level %d: ", levelIdx(i));
-      for (int k=bit_map->num_bits>>(levelIdx(i)+1);k>0; k--){
-        printf(" ");
+        printf ("level %d: ", levelIdx(i));
+        for (int k=bit_map->num_bits>>(levelIdx(i)+1);k>0; k--){
+            printf(" ");
       }
     }
     if (levelIdx(i)!=levelIdx(i+1)){
-      printf("%d ", BitMap_bit(bit_map,i));
-      printf("\n");
+        printf("%d ", BitMap_bit(bit_map,i));
+        printf("\n");
     }
     else{
      printf("%d ", BitMap_bit(bit_map,i));
@@ -27,8 +27,7 @@ void BitMap_print(BitMap* bit_map){
     }
   }
   printf("\n");
-
-  }
+}
 
 // these are trivial helpers to support you in case you want
 // to do a bitmap implementation
@@ -79,9 +78,7 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
   // we need enough memory to handle internal structures
   assert (buffer_size>=BuddyAllocator_calcSize(num_levels));
 
-
   int n_bits = (1 << num_levels ) - 1;
-
 
   //inizializzo la BitMap
   BitMap_init(alloc->bitmap,n_bits,buffer+sizeof(BitMap));
@@ -91,9 +88,7 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
   BitMap_setBit(alloc->bitmap,0,1);
   for(int i = 1; i < n_bits; i++)
 	  BitMap_setBit(alloc->bitmap,i,0);
-
-
-  }
+}
 
   int BuddyAllocator_getBuddy(BuddyAllocator* alloc, int lvl){
     //printf("%d   livello\n",lvl );
@@ -113,22 +108,18 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
       if(BitMap_bit(alloc->bitmap, first_idx + i - 1)){ //-1 perche la bitmap parte da 0
         //se il buddy e libero ritorno il suo indice
         //e setto il bit nella bitmap come unavailable
-
         BitMap_setBit(alloc->bitmap, first_idx + i - 1, 0);
         return first_idx + i;
       }
     }
-
-    //  caso in cui non ci siano buddy available al livello lvl
+    //caso in cui non ci siano buddy available al livello lvl
     //cerco nel livello del genitore
     int final_idx = BuddyAllocator_getBuddy(alloc, levelIdx(parentIdx(first_idx))) *2;
     //printf("%d\n",final_idx );
     if(!final_idx) return 0; //se non vi e memoria disponibile ritorno 0
 
-
+    //setto il buddy disponibile
     int mem_idx = buddyIdx(final_idx);
-
-
     BitMap_setBit(alloc->bitmap, mem_idx - 1, 1);
 
 
@@ -148,8 +139,8 @@ void BuddyAllocator_init(BuddyAllocator* alloc,
          size, level);
 
     int idx_free = BuddyAllocator_getBuddy(alloc,level);
-    //cerco un buddy libero
-    //printf("Ci sto\n" );
+    //cerco un nodo libero
+
     if(!idx_free) return 0;
 
 

@@ -11,6 +11,7 @@ typedef struct  {
   int min_bucket_size; // the minimum page of RAM that can be returned
 } BuddyAllocator;
 
+int BuddyAllocator_calcSize(int num_levels);
 //semplice funzione di stampa per la bitmap
 void BitMap_print(BitMap* bit_map);
 
